@@ -1,0 +1,39 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="es" lang="es">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+	<link rel="stylesheet" type="text/css" href="main.css" />
+</head>
+<body>
+    <h1>Ejemplos Drag & Drop con HTML5</h1>
+    <h2>Drag & Drop simple</h2>
+    <button id="upload_start">Subir ficheros</button>
+    <h2>Ficheros adjuntos</h2>
+    <div id="ckd-au-dropcontainer">
+	    Arrastra los ficheros que deseas subir aquí
+    </div>
+    
+    <ul id="ckd-au-filelist"></ul>
+
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="jquery.filedrag.js""></script>
+    <script type="text/javascript" src="jquery.filedropcontainer.js""></script>
+    <script type="text/javascript">
+    $().ready(function(){
+        $('#upload_start').click(function(){
+            c.start();
+        });
+        var c = $('#ckd-au-dropcontainer').fileDropContainer({
+            autostart: true,
+	        onFileDragEnter: function(){ console.log('onFileDragEnter');},
+            onFileDragLeave: function(){ console.log('onFileDragLeave');},
+            onUploadSuccess: function(){ console.log('onUploadSuccess');},
+            onUploadError: function(){ console.log('onUploadError');},
+            onFileDropped: function(){ console.log('onFileDropped');},
+            onUploadComplete: function(){ console.log('onUploadComplete');}
+        });
+    });
+    </script>
+</body>
+</html>
+

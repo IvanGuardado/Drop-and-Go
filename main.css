@@ -1,0 +1,27 @@
+body{
+    font-family: arial;
+}
+#ckd-au-dropcontainer{
+    color: #BCBCBC;
+    text-align: center;
+    vertical-align: middle;
+    font-weight: bold;
+    font-size: 20px;
+	border:dashed 3px;
+	width: 500px;
+	height: 100px;
+	padding: 5px;
+	overflow: auto;
+}
+.ckd-au-uploading{
+	background: blue;
+}
+.ckd-au-uploadok {
+	background: green !important;
+}
+.ckd-au-uploaderror{
+	background: red !important;
+}
+.ckd-au-dragenter {
+	background: #FA3;
+}
