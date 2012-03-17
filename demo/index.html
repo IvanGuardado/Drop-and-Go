@@ -1,39 +1,129 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="es" lang="es">
-<head>
-	<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
-	<link rel="stylesheet" type="text/css" href="main.css" />
-</head>
-<body>
-    <h1>Ejemplos Drag & Drop con HTML5</h1>
-    <h2>Drag & Drop simple</h2>
-    <button id="upload_start">Subir ficheros</button>
-    <h2>Ficheros adjuntos</h2>
-    <div id="ckd-au-dropcontainer">
-	    Arrastra los ficheros que deseas subir aquí
-    </div>
-    
-    <ul id="ckd-au-filelist"></ul>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <base href="http://dropandgo.localhost/demo/"/>
+    <title>Drop And Go Demo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <!-- Le styles -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <style>
+      body {
+        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+      }
+      #drop-container {
+        border: solid 1px #dedede;
+        width: 300px;
+        min-height:300px;
+        padding: 10px;
+        margin-bottom: 10px;
+      }
+      #drop-placeholder {
+        vertical-align: middle;
+        height: 100%;
+        font-size: 2em;
+        color: #bcbcbc;
+      }
+      p.empty {
+        color: #bcbcbc;
+        font-size:1.2em;
+      }
+      li.file-pending {
+        
+      }
+      #file-list {
+        margin-left: 0;
+        padding-left: 0;
+        list-style: none;
+      }
+      li.file-item {
+        padding-left: 14px;
+        background-repeat: no-repeat
+      }
+      .none { display: none; }
+    </style>
+  </head>
+
+  <body>
+    <div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="#">Drop And Go Demo</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <p class="lead">This is a example of how to create a list of files to upload using Drop and Go. Drag and drop files from your SO into the box.</p>
+      <h2>Files to upload</h2>
+      <div id="drop-container">
+        <div id="drop-placeholder" class="none">
+            <span>Drop here!</span>
+        </div>
+        <ul id="file-list">
+            <li class="empty">The list is empty yet.</li>
+        </ul>
+      </div>
+      <button id="upload_start" class="btn btn-primary" href="#">Upload files</button>
+
+    </div> <!-- /container -->
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-    <script type="text/javascript" src="jquery.filedrag.js""></script>
-    <script type="text/javascript" src="jquery.filedropcontainer.js""></script>
+    <script type="text/javascript" src="js/vendor/jquery.filedrag.js""></script>
+    <script type="text/javascript" src="js/jquery.filedropcontainer.js"></script>
     <script type="text/javascript">
     $().ready(function(){
+        var $fileList = $('#file-list');
+        var $placeHolder = $("#drop-placeholder");
+        
         $('#upload_start').click(function(){
-            c.start();
+            container.start();
         });
-        var c = $('#ckd-au-dropcontainer').fileDropContainer({
-            autostart: true,
-	        onFileDragEnter: function(){ console.log('onFileDragEnter');},
-            onFileDragLeave: function(){ console.log('onFileDragLeave');},
-            onUploadSuccess: function(){ console.log('onUploadSuccess');},
-            onUploadError: function(){ console.log('onUploadError');},
-            onFileDropped: function(){ console.log('onFileDropped');},
-            onUploadComplete: function(){ console.log('onUploadComplete');}
+        var container = $('#drop-container').fileDropContainer({
+            autostart: false,
+            serverScript: "upload.php",
+	        onFileDragEnter: function(){ 
+	            $fileList.addClass("none");
+	            $placeHolder.removeClass("none");
+            },
+            onFileDragLeave: function(){ 
+                $fileList.removeClass("none");   
+                $placeHolder.addClass("none");
+            },
+            onFileDropped: function(fileItem){
+                $fileList.find(".empty").remove();
+                $fileList.append(
+                    $("<li/>")
+                        .attr("id", "file-"+fileItem.id)
+                        .append(
+                            $("<i/>").addClass("icon-arrow-right")
+                        ).append(" "+fileItem.name)
+                );
+            },
+            onFileUploadStart: function(fileItem){
+                $("#file-"+fileItem.id+" i")
+                    .removeClass()
+                    .addClass("icon-refresh");
+            },
+            onUploadSuccess: function(fileItem){
+                $("#file-"+fileItem.id+" i")
+                    .removeClass()
+                    .addClass("icon-ok");
+            },
+            onUploadError: function(fileItem){
+                $("#file-"+fileItem.id+" i")
+                    .removeClass()
+                    .addClass("icon-remove");
+            }
         });
     });
     </script>
-</body>
-</html>
+   
 
+  </body>
+</html>

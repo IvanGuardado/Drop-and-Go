@@ -5,16 +5,19 @@ var defaultOptions = {
     'maxFileSize': null, //todo
     'maxQueueSize': null, //todo
     'autostart': true,
+    'serverScript': 'upload.php',
     'onFileDragEnter': $.noop,
     'onFileDragLeave': $.noop,
     'onUploadSuccess': $.noop,
     'onUploadError': $.noop,
     'onFileDropped': $.noop,
+    'onFileUploadStart': $.noop,
     'onUploadComplete': $.noop //todo
 };
   
 var Container = function($container, options){
     var me = this;
+    var $container = $container;
     var isRunning = false;
     var fileItemList = [];
     bindEvents();
@@ -22,23 +25,24 @@ var Container = function($container, options){
     function bindEvents()
     {
         $.filedragstart(function(){
-            options.onFileDragEnter();
+            options.onFileDragEnter.call($container);
         });
         $.filedragend(function(){
-            options.onFileDragLeave();
+            options.onFileDragLeave.call($container);
         });
 		$container.bind('drop', onDropEvent);
     }
     
     function onDropEvent(event)
     {
+        options.onFileDragLeave.call($container);
         var data = event.originalEvent.dataTransfer;
 		for (var i = 0; i < data.files.length; i++) {
 			var file = data.files[i];
 			if(!me.isFileAdded(file.name)){
 			    var fileId = me.getTotalFiles()+1;
 				var fileItem = new FileItem(fileId, file);
-				options.onFileDropped(fileItem);
+				options.onFileDropped.call($container, fileItem);
 				fileItemList.push(fileItem);
 			}
 		}
@@ -67,6 +71,7 @@ var Container = function($container, options){
 			for(var i=0; i < fileItemList.length; i++){
 				var fileItem = fileItemList[i];
 				if(sendFile(fileItem)){
+				    options.onFileUploadStart.call($container, fileItem);
 				    break;
 				}
 			}
@@ -87,14 +92,23 @@ var Container = function($container, options){
         return fileItemList.length;
 	};
 	
-	this.onServerResponse = function(responseText) {
-        var response = eval("("+responseText+")");
-        if(response.status == true){
-	        options.onUploadSuccess();
-        }else{
-	        options.onUploadError();
+	this.onServerResponse = function(responseText, fileItem) {
+	    if(!responseText){
+	        options.onUploadError.call($container, fileItem);
+	    }
+	    else {
+            var response = eval("("+responseText+")");
+            if(response.status == true){
+	            options.onUploadSuccess.call($container, fileItem);
+            }else{
+	            options.onUploadError.call($container, fileItem);
+            }
         }
         next();
+    };
+    
+    this.getServerScript = function(){
+        return options.serverScript;
     };
     
     function next()
@@ -147,6 +161,9 @@ var FileItem = function(id, file){
 		    
 		    callback(builder);
         };
+        reader.onerror = function(){
+            callback();
+        };
         reader.readAsBinaryString(file);
 	}
 	
@@ -166,12 +183,16 @@ var FileItem = function(id, file){
 	this.send = function(manager)
 	{
 		prepareData(function(data) {
-		    var xhr = new XMLHttpRequest();
-		    xhr.open("POST", "upload.php", true);
-		    xhr.setRequestHeader('content-type', 'multipart/form-data; boundary=' + getBoundary());
-		    xhr.send(data);
-		    xhr.onload = function(){
-		        manager.onServerResponse(xhr.responseText);
+		    if(!data){
+		        manager.onServerResponse(undefined, me);
+		    }else{
+		        var xhr = new XMLHttpRequest();
+		        xhr.open("POST", manager.getServerScript(), true);
+		        xhr.setRequestHeader('content-type', 'multipart/form-data; boundary=' + getBoundary());
+		        xhr.send(data);
+		        xhr.onload = function(){
+		            manager.onServerResponse(xhr.responseText, me);
+	            }
 	        }
 		    sent = true;
 		});
